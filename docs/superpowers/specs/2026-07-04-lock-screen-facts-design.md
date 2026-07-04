@@ -43,8 +43,8 @@ latest fact.
 
 ### 1. Facts data (`data/facts.json`)
 
-~6 categories — Science, History, Space, Animals, Geography, Human Body — with
-~40–50 facts each. Shape: `{ id: string, category: string, text: string }`.
+6 categories — Science, History, Space, Animals, Geography, Human Body — with
+10+ facts each (easily expandable). Shape: `{ id: string, category: string, text: string }`.
 
 ### 2. Settings store (`lib/settings.ts`)
 
