@@ -2,11 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundTopUp } from '../lib/backgroundTask';
 import { rescheduleAll } from '../lib/notifications';
 import { COLORS } from '../lib/theme';
 
 export default function RootLayout() {
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     // Top up the queue on every app open; register the background task once.
     rescheduleAll();
@@ -28,7 +31,7 @@ export default function RootLayout() {
             position: 'absolute',
             left: 16,
             right: 16,
-            bottom: 16,
+            bottom: insets.bottom + 12, // stay clear of the device nav bar / gesture area
             height: 64,
             paddingTop: 8,
             paddingBottom: 10,

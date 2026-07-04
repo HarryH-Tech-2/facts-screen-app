@@ -92,7 +92,7 @@ export default function Home() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 20, paddingBottom: 120 },
+          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 110 },
         ]}
         showsVerticalScrollIndicator={false}
       >

@@ -23,7 +23,7 @@ export default function Browse() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 20, paddingBottom: 120 },
+          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 110 },
         ]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
