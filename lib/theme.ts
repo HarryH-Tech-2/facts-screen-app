@@ -1,4 +1,21 @@
-export const COLORS = {
+export interface Palette {
+  bgTop: string;
+  bgMid: string;
+  bgBottom: string;
+  card: string;
+  cardSolid: string;
+  cardBorder: string;
+  accent: string;
+  accentBright: string;
+  text: string;
+  textMuted: string;
+  textFaint: string;
+  trackLine: string;
+  tabBar: string;
+  particle: string;
+}
+
+export const DARK: Palette = {
   bgTop: '#0A0D1F',
   bgMid: '#10142B',
   bgBottom: '#241640',
@@ -11,6 +28,25 @@ export const COLORS = {
   textMuted: '#9AA0C3',
   textFaint: '#6B7199',
   trackLine: '#3A3F63',
+  tabBar: 'rgba(26, 31, 61, 0.96)',
+  particle: '#C4B5FD',
+};
+
+export const LIGHT: Palette = {
+  bgTop: '#F7F5FF',
+  bgMid: '#EFEAFC',
+  bgBottom: '#E3D9F8',
+  card: 'rgba(255, 255, 255, 0.78)',
+  cardSolid: '#FFFFFF',
+  cardBorder: 'rgba(124, 92, 255, 0.22)',
+  accent: '#7C3AED',
+  accentBright: '#6D28D9',
+  text: '#1D1B33',
+  textMuted: '#565A7A',
+  textFaint: '#8A8FAD',
+  trackLine: '#CFCFE6',
+  tabBar: 'rgba(255, 255, 255, 0.96)',
+  particle: '#8B5CF6',
 };
 
 export const CATEGORY_META: Record<string, { icon: string; color: string; tile: string }> = {

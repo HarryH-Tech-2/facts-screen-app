@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Linking,
   Pressable,
@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ParticleField from '../components/ParticleField';
 import { CATEGORIES } from '../lib/facts';
 import {
   getScheduleInfo,
@@ -18,8 +19,9 @@ import {
   rescheduleAll,
   ScheduleInfo,
 } from '../lib/notifications';
-import { COLORS, CATEGORY_META } from '../lib/theme';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, Settings } from '../lib/settings';
+import { CATEGORY_META, Palette } from '../lib/theme';
+import { useTheme } from '../lib/theme-context';
 
 const INTERVALS: { label: string; minutes: number; sentence: string }[] = [
   { label: '15m', minutes: 15, sentence: 'Every 15 min' },
@@ -41,6 +43,8 @@ function formatNext(date: Date): string {
 
 export default function Home() {
   const insets = useSafeAreaInsets();
+  const { mode, palette, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(true);
@@ -85,10 +89,11 @@ export default function Home() {
 
   return (
     <LinearGradient
-      colors={[COLORS.bgTop, COLORS.bgMid, COLORS.bgBottom]}
+      colors={[palette.bgTop, palette.bgMid, palette.bgBottom]}
       locations={[0, 0.55, 1]}
       style={styles.root}
     >
+      <ParticleField color={palette.particle} />
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -99,15 +104,24 @@ export default function Home() {
         {/* Header */}
         <View style={styles.headerRow}>
           <Text style={styles.title}>Lock Screen Facts</Text>
-          <Pressable style={styles.gearButton} onPress={() => Linking.openSettings()}>
-            <Ionicons name="settings-sharp" size={20} color={COLORS.text} />
-          </Pressable>
+          <View style={styles.headerButtons}>
+            <Pressable style={styles.roundButton} onPress={toggleTheme}>
+              <Ionicons
+                name={mode === 'dark' ? 'sunny' : 'moon'}
+                size={20}
+                color={palette.text}
+              />
+            </Pressable>
+            <Pressable style={styles.roundButton} onPress={() => Linking.openSettings()}>
+              <Ionicons name="settings-sharp" size={20} color={palette.text} />
+            </Pressable>
+          </View>
         </View>
         <Text style={styles.subtitle}>Learn something new, every time you unlock.</Text>
 
         {!NOTIFICATIONS_AVAILABLE && (
           <View style={styles.notice}>
-            <Ionicons name="information-circle" size={20} color={COLORS.accentBright} />
+            <Ionicons name="information-circle" size={20} color={palette.accentBright} />
             <Text style={styles.noticeText}>
               Expo Go can't show notifications. The UI works here — install a real
               build to get facts on your lock screen.
@@ -116,7 +130,7 @@ export default function Home() {
         )}
         {NOTIFICATIONS_AVAILABLE && !permissionGranted && (
           <View style={styles.notice}>
-            <Ionicons name="notifications-off" size={20} color={COLORS.accentBright} />
+            <Ionicons name="notifications-off" size={20} color={palette.accentBright} />
             <Text style={styles.noticeText}>
               Notifications are disabled, so facts can't reach your lock screen.{' '}
               <Text style={styles.noticeLink} onPress={() => Linking.openSettings()}>
@@ -154,7 +168,7 @@ export default function Home() {
 
         <View style={styles.comingSoon}>
           <View style={styles.plusTile}>
-            <Ionicons name="add" size={20} color={COLORS.accentBright} />
+            <Ionicons name="add" size={20} color={palette.accentBright} />
           </View>
           <Text style={styles.comingSoonText}>More categories coming soon</Text>
         </View>
@@ -218,7 +232,7 @@ export default function Home() {
               <Ionicons
                 name={settings.notificationsEnabled ? 'time-outline' : 'pause'}
                 size={24}
-                color={COLORS.accentBright}
+                color={palette.accentBright}
               />
             </View>
             <View style={styles.scheduleTextWrap}>
@@ -240,13 +254,13 @@ export default function Home() {
                 <Text style={styles.scheduleDetail}>Paused — tap to resume</Text>
               )}
             </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textFaint} />
+            <Ionicons name="chevron-forward" size={20} color={palette.textFaint} />
           </View>
         </Pressable>
 
         {/* Info banner */}
         <View style={styles.infoBanner}>
-          <Ionicons name="sparkles" size={22} color={COLORS.accentBright} />
+          <Ionicons name="sparkles" size={22} color={palette.accentBright} />
           <Text style={styles.infoText}>
             We'll deliver a new fact to your lock screen at your chosen interval.
           </Text>
@@ -256,225 +270,228 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  container: { paddingHorizontal: 20 },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  title: {
-    color: COLORS.text,
-    fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  gearButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
-  subtitle: {
-    color: COLORS.textMuted,
-    fontSize: 15,
-    marginTop: 6,
-    marginBottom: 24,
-  },
-  notice: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'flex-start',
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 20,
-  },
-  noticeText: { color: COLORS.textMuted, flex: 1, lineHeight: 19 },
-  noticeLink: { color: COLORS.accentBright, fontWeight: '600' },
-  sectionTitle: {
-    color: COLORS.text,
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 14,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  categoryCard: {
-    width: '48%',
-    flexGrow: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-  },
-  categoryCardOff: { opacity: 0.55 },
-  iconTile: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryName: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: '600',
-    flex: 1,
-  },
-  check: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkOn: { backgroundColor: COLORS.accent },
-  checkOff: { borderWidth: 1.5, borderColor: COLORS.trackLine },
-  comingSoon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(30, 34, 66, 0.4)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    padding: 14,
-    marginTop: 12,
-    marginBottom: 24,
-  },
-  plusTile: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: COLORS.accent,
-  },
-  comingSoonText: { color: COLORS.textFaint, fontSize: 15 },
-  card: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700' },
-  cardValue: { color: COLORS.accentBright, fontSize: 15, fontWeight: '600' },
-  cardHint: { color: COLORS.textMuted, fontSize: 14, marginTop: 4 },
-  sliderTrack: {
-    height: 32,
-    justifyContent: 'center',
-    marginTop: 18,
-  },
-  trackLine: {
-    position: 'absolute',
-    left: 10,
-    right: 10,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.trackLine,
-  },
-  trackFill: {
-    position: 'absolute',
-    left: 10,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.accent,
-  },
-  ticksRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  tickHit: {
-    width: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tick: {
-    width: 3,
-    height: 12,
-    borderRadius: 2,
-    backgroundColor: COLORS.trackLine,
-  },
-  thumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.accent,
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
-  },
-  thumbInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FFF',
-  },
-  labelsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    paddingHorizontal: 2,
-  },
-  tickLabel: {
-    color: COLORS.textFaint,
-    fontSize: 13,
-    width: 32,
-    textAlign: 'center',
-  },
-  tickLabelActive: { color: COLORS.accentBright, fontWeight: '700' },
-  scheduleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  clockTile: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(139, 92, 246, 0.14)',
-  },
-  scheduleTextWrap: { flex: 1, gap: 3 },
-  scheduleDetail: { color: COLORS.textMuted, fontSize: 14 },
-  scheduleNext: { color: COLORS.textFaint, fontSize: 14 },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: 'rgba(30, 34, 66, 0.55)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-  },
-  infoText: { color: COLORS.textMuted, fontSize: 15, lineHeight: 21, flex: 1 },
-});
+const createStyles = (p: Palette) =>
+  StyleSheet.create({
+    root: { flex: 1 },
+    container: { paddingHorizontal: 20 },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    title: {
+      color: p.text,
+      fontSize: 32,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      flexShrink: 1,
+    },
+    headerButtons: { flexDirection: 'row', gap: 10 },
+    roundButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: p.card,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+    },
+    subtitle: {
+      color: p.textMuted,
+      fontSize: 15,
+      marginTop: 6,
+      marginBottom: 24,
+    },
+    notice: {
+      flexDirection: 'row',
+      gap: 10,
+      alignItems: 'flex-start',
+      backgroundColor: p.card,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 20,
+    },
+    noticeText: { color: p.textMuted, flex: 1, lineHeight: 19 },
+    noticeLink: { color: p.accentBright, fontWeight: '600' },
+    sectionTitle: {
+      color: p.text,
+      fontSize: 20,
+      fontWeight: '700',
+      marginBottom: 14,
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    categoryCard: {
+      width: '48%',
+      flexGrow: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: p.card,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+      borderRadius: 16,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+    },
+    categoryCardOff: { opacity: 0.55 },
+    iconTile: {
+      width: 38,
+      height: 38,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    categoryName: {
+      color: p.text,
+      fontSize: 15,
+      fontWeight: '600',
+      flex: 1,
+    },
+    check: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkOn: { backgroundColor: p.accent },
+    checkOff: { borderWidth: 1.5, borderColor: p.trackLine },
+    comingSoon: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: p.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+      padding: 14,
+      marginTop: 12,
+      marginBottom: 24,
+    },
+    plusTile: {
+      width: 38,
+      height: 38,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: p.accent,
+    },
+    comingSoonText: { color: p.textFaint, fontSize: 15 },
+    card: {
+      backgroundColor: p.card,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+    },
+    cardHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    cardTitle: { color: p.text, fontSize: 17, fontWeight: '700' },
+    cardValue: { color: p.accentBright, fontSize: 15, fontWeight: '600' },
+    cardHint: { color: p.textMuted, fontSize: 14, marginTop: 4 },
+    sliderTrack: {
+      height: 32,
+      justifyContent: 'center',
+      marginTop: 18,
+    },
+    trackLine: {
+      position: 'absolute',
+      left: 10,
+      right: 10,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: p.trackLine,
+    },
+    trackFill: {
+      position: 'absolute',
+      left: 10,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: p.accent,
+    },
+    ticksRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    tickHit: {
+      width: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tick: {
+      width: 3,
+      height: 12,
+      borderRadius: 2,
+      backgroundColor: p.trackLine,
+    },
+    thumb: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: p.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: p.accent,
+      shadowOpacity: 0.6,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 6,
+    },
+    thumbInner: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: '#FFF',
+    },
+    labelsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      paddingHorizontal: 2,
+    },
+    tickLabel: {
+      color: p.textFaint,
+      fontSize: 13,
+      width: 32,
+      textAlign: 'center',
+    },
+    tickLabelActive: { color: p.accentBright, fontWeight: '700' },
+    scheduleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    clockTile: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(139, 92, 246, 0.14)',
+    },
+    scheduleTextWrap: { flex: 1, gap: 3 },
+    scheduleDetail: { color: p.textMuted, fontSize: 14 },
+    scheduleNext: { color: p.textFaint, fontSize: 14 },
+    infoBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      backgroundColor: p.card,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+      paddingVertical: 18,
+      paddingHorizontal: 16,
+    },
+    infoText: { color: p.textMuted, fontSize: 15, lineHeight: 21, flex: 1 },
+  });

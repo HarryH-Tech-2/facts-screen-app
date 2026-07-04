@@ -5,27 +5,22 @@ import { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundTopUp } from '../lib/backgroundTask';
 import { rescheduleAll } from '../lib/notifications';
-import { COLORS } from '../lib/theme';
+import { ThemeProvider, useTheme } from '../lib/theme-context';
 
-export default function RootLayout() {
+function AppTabs() {
   const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    // Top up the queue on every app open; register the background task once.
-    rescheduleAll();
-    registerBackgroundTopUp();
-  }, []);
+  const { mode, palette } = useTheme();
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <Tabs
         screenOptions={{
           headerShown: false,
-          sceneStyle: { backgroundColor: COLORS.bgTop },
+          sceneStyle: { backgroundColor: palette.bgTop },
           tabBarShowLabel: true,
-          tabBarActiveTintColor: COLORS.accentBright,
-          tabBarInactiveTintColor: COLORS.textFaint,
+          tabBarActiveTintColor: palette.accentBright,
+          tabBarInactiveTintColor: palette.textFaint,
           tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
           tabBarStyle: {
             position: 'absolute',
@@ -36,11 +31,11 @@ export default function RootLayout() {
             paddingTop: 8,
             paddingBottom: 10,
             borderRadius: 32,
-            backgroundColor: 'rgba(26, 31, 61, 0.96)',
+            backgroundColor: palette.tabBar,
             borderTopWidth: 1,
             borderWidth: 1,
-            borderColor: COLORS.cardBorder,
-            borderTopColor: COLORS.cardBorder,
+            borderColor: palette.cardBorder,
+            borderTopColor: palette.cardBorder,
             elevation: 0,
           },
         }}
@@ -65,5 +60,19 @@ export default function RootLayout() {
         />
       </Tabs>
     </>
+  );
+}
+
+export default function RootLayout() {
+  useEffect(() => {
+    // Top up the queue on every app open; register the background task once.
+    rescheduleAll();
+    registerBackgroundTopUp();
+  }, []);
+
+  return (
+    <ThemeProvider>
+      <AppTabs />
+    </ThemeProvider>
   );
 }
