@@ -48,6 +48,26 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return requested.granted;
 }
 
+export interface ScheduleInfo {
+  count: number;
+  nextDate: Date | null;
+}
+
+/** Returns how many notifications are queued and when the next one fires. */
+export async function getScheduleInfo(): Promise<ScheduleInfo | null> {
+  if (!Notifications) return null;
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  let nextDate: Date | null = null;
+  for (const n of scheduled) {
+    const trigger = n.trigger as { value?: number | string; date?: number | string } | null;
+    const raw = trigger?.value ?? trigger?.date;
+    if (raw == null) continue;
+    const d = new Date(raw);
+    if (!isNaN(d.getTime()) && (!nextDate || d < nextDate)) nextDate = d;
+  }
+  return { count: scheduled.length, nextDate };
+}
+
 /**
  * Cancels everything and schedules the next QUEUE_SIZE facts.
  * Called on app open, settings change, and by the background top-up task.

@@ -1,5 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORIES, FACTS } from '../lib/facts';
+import { CATEGORY_META, COLORS } from '../lib/theme';
 
 const SECTIONS = CATEGORIES.map((category) => ({
   title: category,
@@ -7,37 +11,86 @@ const SECTIONS = CATEGORIES.map((category) => ({
 }));
 
 export default function Browse() {
+  const insets = useSafeAreaInsets();
   return (
-    <SectionList
-      sections={SECTIONS}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.container}
-      renderSectionHeader={({ section }) => (
-        <Text style={styles.header}>{section.title}</Text>
-      )}
-      renderItem={({ item }) => (
-        <View style={styles.item}>
-          <Text style={styles.itemText}>{item.text}</Text>
-        </View>
-      )}
-    />
+    <LinearGradient
+      colors={[COLORS.bgTop, COLORS.bgMid, COLORS.bgBottom]}
+      locations={[0, 0.55, 1]}
+      style={styles.root}
+    >
+      <SectionList
+        sections={SECTIONS}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[
+          styles.container,
+          { paddingTop: insets.top + 20, paddingBottom: 120 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled={false}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.title}>Browse Facts</Text>
+            <Text style={styles.subtitle}>Everything that can land on your lock screen.</Text>
+          </>
+        }
+        renderSectionHeader={({ section }) => {
+          const meta = CATEGORY_META[section.title];
+          return (
+            <View style={styles.sectionHeader}>
+              <View style={[styles.iconTile, { backgroundColor: meta.tile }]}>
+                <Ionicons name={meta.icon as never} size={16} color={meta.color} />
+              </View>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+            </View>
+          );
+        }}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <Text style={styles.itemText}>{item.text}</Text>
+          </View>
+        )}
+      />
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  header: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 8,
-    backgroundColor: '#FFF',
+  root: { flex: 1 },
+  container: { paddingHorizontal: 20 },
+  title: {
+    color: COLORS.text,
+    fontSize: 34,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
-  item: {
-    backgroundColor: '#F4F4F8',
+  subtitle: {
+    color: COLORS.textMuted,
+    fontSize: 15,
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 22,
+    marginBottom: 10,
+  },
+  iconTile: {
+    width: 30,
+    height: 30,
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  itemText: { fontSize: 15, lineHeight: 21 },
+  sectionTitle: { color: COLORS.text, fontSize: 19, fontWeight: '700' },
+  item: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+  },
+  itemText: { color: COLORS.textMuted, fontSize: 15, lineHeight: 21 },
 });

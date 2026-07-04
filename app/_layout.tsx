@@ -1,7 +1,10 @@
-import { Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { registerBackgroundTopUp } from '../lib/backgroundTask';
 import { rescheduleAll } from '../lib/notifications';
+import { COLORS } from '../lib/theme';
 
 export default function RootLayout() {
   useEffect(() => {
@@ -11,9 +14,53 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'Lock Screen Facts' }} />
-      <Stack.Screen name="browse" options={{ title: 'Browse Facts' }} />
-    </Stack>
+    <>
+      <StatusBar style="light" />
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: COLORS.bgTop },
+          tabBarShowLabel: true,
+          tabBarActiveTintColor: COLORS.accentBright,
+          tabBarInactiveTintColor: COLORS.textFaint,
+          tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
+          tabBarStyle: {
+            position: 'absolute',
+            left: 16,
+            right: 16,
+            bottom: 16,
+            height: 64,
+            paddingTop: 8,
+            paddingBottom: 10,
+            borderRadius: 32,
+            backgroundColor: 'rgba(26, 31, 61, 0.96)',
+            borderTopWidth: 1,
+            borderWidth: 1,
+            borderColor: COLORS.cardBorder,
+            borderTopColor: COLORS.cardBorder,
+            elevation: 0,
+          },
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="browse"
+          options={{
+            title: 'Browse',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </>
   );
 }
