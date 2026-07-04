@@ -27,6 +27,13 @@
       "expo-router",
       "expo-notifications",
       "expo-background-task"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "affd3f97-b8a3-4512-9bac-2dc2b30e5d20"
+      }
+    },
+    "owner": "harryhh"
   }
 }
