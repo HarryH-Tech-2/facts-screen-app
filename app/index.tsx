@@ -10,7 +10,11 @@ import {
   View,
 } from 'react-native';
 import { CATEGORIES, FACTS } from '../lib/facts';
-import { requestNotificationPermission, rescheduleAll } from '../lib/notifications';
+import {
+  NOTIFICATIONS_AVAILABLE,
+  requestNotificationPermission,
+  rescheduleAll,
+} from '../lib/notifications';
 import { pickFacts } from '../lib/scheduler';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, Settings } from '../lib/settings';
 
@@ -61,7 +65,16 @@ export default function Home() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {!permissionGranted && (
+      {!NOTIFICATIONS_AVAILABLE && (
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>
+            You're running in Expo Go, which doesn't support notifications. The UI
+            works here, but to see facts on your lock screen install a real build
+            (eas build -p android --profile preview).
+          </Text>
+        </View>
+      )}
+      {NOTIFICATIONS_AVAILABLE && !permissionGranted && (
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
             Notifications are disabled, so facts can't appear on your lock screen.

@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 import { FACTS } from './facts';
 import { loadSettings } from './settings';
@@ -7,18 +7,29 @@ import { buildSchedule, pickFacts } from './scheduler';
 const CHANNEL_ID = 'facts';
 const QUEUE_SIZE = 50;
 
-// Show notifications even while the app is in the foreground.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+// Since SDK 53, expo-notifications throws when imported inside Expo Go on
+// Android. Detect Expo Go and skip notifications entirely there — the rest of
+// the app still works, and real builds (EAS/dev build) get full functionality.
+export const NOTIFICATIONS_AVAILABLE =
+  Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+
+const Notifications: typeof import('expo-notifications') | null =
+  NOTIFICATIONS_AVAILABLE ? require('expo-notifications') : null;
+
+if (Notifications) {
+  // Show notifications even while the app is in the foreground.
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export async function ensureChannel(): Promise<void> {
-  if (Platform.OS !== 'android') return;
+  if (!Notifications || Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
     name: 'Facts',
     importance: Notifications.AndroidImportance.DEFAULT,
@@ -30,6 +41,7 @@ export async function ensureChannel(): Promise<void> {
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
+  if (!Notifications) return false;
   const existing = await Notifications.getPermissionsAsync();
   if (existing.granted) return true;
   const requested = await Notifications.requestPermissionsAsync();
@@ -41,6 +53,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * Called on app open, settings change, and by the background top-up task.
  */
 export async function rescheduleAll(): Promise<void> {
+  if (!Notifications) return;
   const settings = await loadSettings();
 
   await Notifications.cancelAllScheduledNotificationsAsync();
