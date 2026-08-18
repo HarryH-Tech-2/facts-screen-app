@@ -3,16 +3,24 @@ import { CATEGORIES } from './facts';
 
 const STORAGE_KEY = 'settings-v1';
 
+export type WallpaperStyle = 'generated' | 'photo';
+
 export interface Settings {
   enabledCategories: string[];
   intervalMinutes: number; // 15 | 30 | 60 | 1440
   notificationsEnabled: boolean;
+  wallpaperEnabled: boolean;
+  wallpaperStyle: WallpaperStyle;
+  wallpaperPhotoUri: string | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   enabledCategories: [...CATEGORIES],
   intervalMinutes: 30,
   notificationsEnabled: true,
+  wallpaperEnabled: false,
+  wallpaperStyle: 'generated',
+  wallpaperPhotoUri: null,
 };
 
 export async function loadSettings(): Promise<Settings> {

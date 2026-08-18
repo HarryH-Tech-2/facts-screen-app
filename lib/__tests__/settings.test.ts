@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { loadSettings, saveSettings, DEFAULT_SETTINGS } from '../settings';
+import { loadSettings, saveSettings, DEFAULT_SETTINGS, Settings } from '../settings';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
@@ -24,10 +24,13 @@ describe('settings store', () => {
   });
 
   it('round-trips saved settings', async () => {
-    const custom = {
+    const custom: Settings = {
       enabledCategories: ['Space'],
       intervalMinutes: 60,
       notificationsEnabled: false,
+      wallpaperEnabled: true,
+      wallpaperStyle: 'photo',
+      wallpaperPhotoUri: '/data/photo.jpg',
     };
     await saveSettings(custom);
     expect(await loadSettings()).toEqual(custom);

@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundTopUp } from '../lib/backgroundTask';
-import { rescheduleAll } from '../lib/notifications';
 import { ThemeProvider, useTheme } from '../lib/theme-context';
 
 function AppTabs() {
@@ -65,8 +64,10 @@ function AppTabs() {
 
 export default function RootLayout() {
   useEffect(() => {
-    // Top up the queue on every app open; register the background task once.
-    rescheduleAll();
+    // The Home screen (index) owns queue scheduling on app open — it requests
+    // notification permission first, then reschedules. Calling rescheduleAll()
+    // here too raced that call (both cancel-then-reschedule) and could leave the
+    // queue empty on a fresh launch. Here we only register the background task.
     registerBackgroundTopUp();
   }, []);
 

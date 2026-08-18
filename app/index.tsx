@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Linking,
   Pressable,
@@ -19,9 +19,21 @@ import {
   rescheduleAll,
   ScheduleInfo,
 } from '../lib/notifications';
-import { DEFAULT_SETTINGS, loadSettings, saveSettings, Settings } from '../lib/settings';
+import {
+  DEFAULT_SETTINGS,
+  loadSettings,
+  saveSettings,
+  Settings,
+  WallpaperStyle,
+} from '../lib/settings';
 import { CATEGORY_META, Palette } from '../lib/theme';
 import { useTheme } from '../lib/theme-context';
+import {
+  pickWallpaperPhoto,
+  syncWallpaper,
+  WALLPAPER_AVAILABLE,
+  wallpaperSupported,
+} from '../lib/wallpaper';
 
 const INTERVALS: { label: string; minutes: number; sentence: string }[] = [
   { label: '15m', minutes: 15, sentence: 'Every 15 min' },
@@ -49,6 +61,12 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(true);
   const [scheduleInfo, setScheduleInfo] = useState<ScheduleInfo | null>(null);
+  const [wallpaperBusy, setWallpaperBusy] = useState(false);
+
+  // Keep the latest palette available to async flows without re-triggering them
+  // when the theme toggles.
+  const paletteRef = useRef(palette);
+  paletteRef.current = palette;
 
   const refreshScheduleInfo = useCallback(async () => {
     setScheduleInfo(await getScheduleInfo());
@@ -62,6 +80,8 @@ export default function Home() {
       setPermissionGranted(await requestNotificationPermission());
       await rescheduleAll();
       await refreshScheduleInfo();
+      // Refresh the lock-screen wallpaper on open and re-arm its worker.
+      await syncWallpaper(s, paletteRef.current);
     })();
   }, [refreshScheduleInfo]);
 
@@ -70,6 +90,37 @@ export default function Home() {
     await saveSettings(next);
     await rescheduleAll();
     await refreshScheduleInfo();
+    await syncWallpaper(next, paletteRef.current);
+  }
+
+  async function choosePhoto() {
+    setWallpaperBusy(true);
+    try {
+      const path = await pickWallpaperPhoto();
+      if (path) {
+        await update({
+          ...settings,
+          wallpaperStyle: 'photo',
+          wallpaperPhotoUri: path,
+          wallpaperEnabled: true,
+        });
+      }
+    } finally {
+      setWallpaperBusy(false);
+    }
+  }
+
+  async function applyWallpaperNow() {
+    setWallpaperBusy(true);
+    try {
+      await syncWallpaper(settings, paletteRef.current);
+    } finally {
+      setWallpaperBusy(false);
+    }
+  }
+
+  function setWallpaperStyle(style: WallpaperStyle) {
+    update({ ...settings, wallpaperStyle: style, wallpaperEnabled: true });
   }
 
   function toggleCategory(category: string) {
@@ -86,6 +137,8 @@ export default function Home() {
     0,
     INTERVALS.findIndex((i) => i.minutes === settings.intervalMinutes)
   );
+
+  const wallpaperOk = WALLPAPER_AVAILABLE && wallpaperSupported();
 
   return (
     <LinearGradient
@@ -218,6 +271,122 @@ export default function Home() {
               </Text>
             ))}
           </View>
+        </View>
+
+        {/* Lock-screen wallpaper */}
+        <View style={styles.card}>
+          <Pressable
+            style={styles.scheduleRow}
+            onPress={() =>
+              update({ ...settings, wallpaperEnabled: !settings.wallpaperEnabled })
+            }
+          >
+            <View style={styles.clockTile}>
+              <Ionicons name="image" size={24} color={palette.accentBright} />
+            </View>
+            <View style={styles.scheduleTextWrap}>
+              <Text style={styles.cardTitle}>Lock Screen Wallpaper</Text>
+              <Text style={styles.scheduleDetail}>
+                A fact on your lock screen, refreshed about {INTERVALS[intervalIndex].label}.
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.pill,
+                settings.wallpaperEnabled ? styles.pillOn : styles.pillOff,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.pillText,
+                  { color: settings.wallpaperEnabled ? '#FFF' : palette.textFaint },
+                ]}
+              >
+                {settings.wallpaperEnabled ? 'On' : 'Off'}
+              </Text>
+            </View>
+          </Pressable>
+
+          {!wallpaperOk && (
+            <View style={[styles.notice, { marginTop: 14, marginBottom: 0 }]}>
+              <Ionicons name="information-circle" size={20} color={palette.accentBright} />
+              <Text style={styles.noticeText}>
+                Lock-screen wallpaper needs a real build on Android 7 or newer.
+              </Text>
+            </View>
+          )}
+
+          {wallpaperOk && settings.wallpaperEnabled && (
+            <>
+              <View style={styles.segmentRow}>
+                {(
+                  [
+                    { key: 'generated', label: 'Themed', icon: 'color-palette' },
+                    { key: 'photo', label: 'My Photo', icon: 'image-outline' },
+                  ] as { key: WallpaperStyle; label: string; icon: string }[]
+                ).map((opt) => {
+                  const active = settings.wallpaperStyle === opt.key;
+                  return (
+                    <Pressable
+                      key={opt.key}
+                      onPress={() => setWallpaperStyle(opt.key)}
+                      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                    >
+                      <Ionicons
+                        name={opt.icon as never}
+                        size={16}
+                        color={active ? '#FFF' : palette.textMuted}
+                      />
+                      <Text
+                        style={[
+                          styles.segmentText,
+                          { color: active ? '#FFF' : palette.textMuted },
+                        ]}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {settings.wallpaperStyle === 'photo' && (
+                <Text style={styles.wallpaperNote}>
+                  {settings.wallpaperPhotoUri
+                    ? 'Your photo is set as the background.'
+                    : 'Choose a photo to use as the background.'}
+                </Text>
+              )}
+
+              <View style={styles.actionRow}>
+                {settings.wallpaperStyle === 'photo' && (
+                  <Pressable
+                    onPress={choosePhoto}
+                    disabled={wallpaperBusy}
+                    style={[styles.ghostBtn, wallpaperBusy && styles.btnDisabled]}
+                  >
+                    <Text style={styles.ghostBtnText}>
+                      {settings.wallpaperPhotoUri ? 'Change photo' : 'Choose photo'}
+                    </Text>
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={applyWallpaperNow}
+                  disabled={wallpaperBusy}
+                  style={[styles.primaryBtn, wallpaperBusy && styles.btnDisabled]}
+                >
+                  <Text style={styles.primaryBtnText}>
+                    {wallpaperBusy ? 'Applying…' : 'Apply now'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <Text style={styles.wallpaperNote}>
+                Turning this off stops updates; the last fact stays on your lock screen
+                until you change your wallpaper in Android settings.
+              </Text>
+            </>
+          )}
         </View>
 
         {/* Scheduled notifications */}
@@ -482,6 +651,63 @@ const createStyles = (p: Palette) =>
     scheduleTextWrap: { flex: 1, gap: 3 },
     scheduleDetail: { color: p.textMuted, fontSize: 14 },
     scheduleNext: { color: p.textFaint, fontSize: 14 },
+    pill: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 16,
+    },
+    pillOn: { backgroundColor: p.accent },
+    pillOff: { borderWidth: 1.5, borderColor: p.trackLine },
+    pillText: { fontSize: 13, fontWeight: '700' },
+    segmentRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 16,
+    },
+    segmentBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 11,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: p.trackLine,
+    },
+    segmentBtnActive: { backgroundColor: p.accent, borderColor: p.accent },
+    segmentText: { fontSize: 14, fontWeight: '600' },
+    actionRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 14,
+    },
+    primaryBtn: {
+      flex: 1,
+      backgroundColor: p.accent,
+      borderRadius: 12,
+      paddingVertical: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primaryBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+    ghostBtn: {
+      flex: 1,
+      borderRadius: 12,
+      paddingVertical: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: p.trackLine,
+    },
+    ghostBtnText: { color: p.text, fontSize: 15, fontWeight: '600' },
+    btnDisabled: { opacity: 0.5 },
+    wallpaperNote: {
+      color: p.textFaint,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: 12,
+    },
     infoBanner: {
       flexDirection: 'row',
       alignItems: 'center',
