@@ -3,9 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo } from 'react';
 import { SectionList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ParticleField from '../components/ParticleField';
 import { CATEGORIES, FACTS } from '../lib/facts';
-import { CATEGORY_META, Palette } from '../lib/theme';
+import { CATEGORY_META, Palette, tilt } from '../lib/theme';
 import { useTheme } from '../lib/theme-context';
 
 const SECTIONS = CATEGORIES.map((category) => ({
@@ -24,7 +23,6 @@ export default function Browse() {
       locations={[0, 0.55, 1]}
       style={styles.root}
     >
-      <ParticleField color={palette.particle} />
       <SectionList
         sections={SECTIONS}
         keyExtractor={(item) => item.id}
@@ -42,9 +40,10 @@ export default function Browse() {
         }
         renderSectionHeader={({ section }) => {
           const meta = CATEGORY_META[section.title];
+          const index = CATEGORIES.indexOf(section.title);
           return (
             <View style={styles.sectionHeader}>
-              <View style={[styles.iconTile, { backgroundColor: meta.tile }]}>
+              <View style={[styles.iconTile, { backgroundColor: meta.tile }, tilt(index)]}>
                 <Ionicons name={meta.icon as never} size={16} color={meta.color} />
               </View>
               <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -68,8 +67,9 @@ const createStyles = (p: Palette) =>
     title: {
       color: p.text,
       fontSize: 34,
-      fontWeight: '800',
+      fontWeight: '900',
       letterSpacing: -0.5,
+      transform: [{ rotate: '-1deg' }],
     },
     subtitle: {
       color: p.textMuted,
@@ -88,17 +88,21 @@ const createStyles = (p: Palette) =>
       width: 30,
       height: 30,
       borderRadius: 8,
+      borderWidth: 2,
+      borderColor: '#17303B',
       alignItems: 'center',
       justifyContent: 'center',
     },
-    sectionTitle: { color: p.text, fontSize: 19, fontWeight: '700' },
+    sectionTitle: { color: p.text, fontSize: 19, fontWeight: '800' },
     item: {
       backgroundColor: p.card,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
+      borderWidth: 2,
+      borderRightWidth: 4,
+      borderBottomWidth: 4,
+      borderColor: p.ink,
       borderRadius: 14,
       padding: 14,
-      marginBottom: 10,
+      marginBottom: 12,
     },
     itemText: { color: p.textMuted, fontSize: 15, lineHeight: 21 },
   });

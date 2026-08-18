@@ -10,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ParticleField from '../components/ParticleField';
 import { CATEGORIES } from '../lib/facts';
 import {
   getScheduleInfo,
@@ -26,7 +25,7 @@ import {
   Settings,
   WallpaperStyle,
 } from '../lib/settings';
-import { CATEGORY_META, Palette } from '../lib/theme';
+import { CATEGORY_META, Palette, TILE_INK, tilt } from '../lib/theme';
 import { useTheme } from '../lib/theme-context';
 import {
   pickWallpaperPhoto,
@@ -146,7 +145,6 @@ export default function Home() {
       locations={[0, 0.55, 1]}
       style={styles.root}
     >
-      <ParticleField color={palette.particle} />
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -196,23 +194,29 @@ export default function Home() {
         {/* Categories */}
         <Text style={styles.sectionTitle}>Categories</Text>
         <View style={styles.grid}>
-          {CATEGORIES.map((category) => {
+          {CATEGORIES.map((category, i) => {
             const active = settings.enabledCategories.includes(category);
             const meta = CATEGORY_META[category];
             return (
               <Pressable
                 key={category}
                 onPress={() => toggleCategory(category)}
-                style={[styles.categoryCard, !active && styles.categoryCardOff]}
+                style={[
+                  styles.categoryCard,
+                  active ? { backgroundColor: meta.tile } : styles.categoryCardOff,
+                ]}
               >
-                <View style={[styles.iconTile, { backgroundColor: meta.tile }]}>
+                <View style={[styles.iconTile, { backgroundColor: meta.tile }, tilt(i)]}>
                   <Ionicons name={meta.icon as never} size={20} color={meta.color} />
                 </View>
-                <Text style={styles.categoryName} numberOfLines={1}>
+                <Text
+                  style={[styles.categoryName, active && styles.categoryNameActive]}
+                  numberOfLines={1}
+                >
                   {category}
                 </Text>
                 <View style={[styles.check, active ? styles.checkOn : styles.checkOff]}>
-                  {active && <Ionicons name="checkmark" size={14} color="#FFF" />}
+                  {active && <Ionicons name="checkmark" size={14} color="#FFFDF7" />}
                 </View>
               </Pressable>
             );
@@ -281,8 +285,8 @@ export default function Home() {
               update({ ...settings, wallpaperEnabled: !settings.wallpaperEnabled })
             }
           >
-            <View style={styles.clockTile}>
-              <Ionicons name="image" size={24} color={palette.accentBright} />
+            <View style={[styles.clockTile, tilt(0)]}>
+              <Ionicons name="image" size={24} color={TILE_INK} />
             </View>
             <View style={styles.scheduleTextWrap}>
               <Text style={styles.cardTitle}>Lock Screen Wallpaper</Text>
@@ -299,7 +303,7 @@ export default function Home() {
               <Text
                 style={[
                   styles.pillText,
-                  { color: settings.wallpaperEnabled ? '#FFF' : palette.textFaint },
+                  { color: settings.wallpaperEnabled ? TILE_INK : palette.textFaint },
                 ]}
               >
                 {settings.wallpaperEnabled ? 'On' : 'Off'}
@@ -335,12 +339,12 @@ export default function Home() {
                       <Ionicons
                         name={opt.icon as never}
                         size={16}
-                        color={active ? '#FFF' : palette.textMuted}
+                        color={active ? TILE_INK : palette.textMuted}
                       />
                       <Text
                         style={[
                           styles.segmentText,
-                          { color: active ? '#FFF' : palette.textMuted },
+                          { color: active ? TILE_INK : palette.textMuted },
                         ]}
                       >
                         {opt.label}
@@ -397,11 +401,11 @@ export default function Home() {
           }
         >
           <View style={styles.scheduleRow}>
-            <View style={styles.clockTile}>
+            <View style={[styles.clockTile, tilt(1)]}>
               <Ionicons
                 name={settings.notificationsEnabled ? 'time-outline' : 'pause'}
                 size={24}
-                color={palette.accentBright}
+                color={TILE_INK}
               />
             </View>
             <View style={styles.scheduleTextWrap}>
@@ -429,7 +433,7 @@ export default function Home() {
 
         {/* Info banner */}
         <View style={styles.infoBanner}>
-          <Ionicons name="sparkles" size={22} color={palette.accentBright} />
+          <Ionicons name="sparkles" size={22} color={TILE_INK} />
           <Text style={styles.infoText}>
             We'll deliver a new fact to your lock screen at your chosen interval.
           </Text>
@@ -438,6 +442,16 @@ export default function Home() {
     </LinearGradient>
   );
 }
+
+// The sticker look: chunky ink outline with a thicker right/bottom edge that
+// reads as a hard offset shadow on every platform.
+const sticker = (p: Palette, radius = 16) => ({
+  borderWidth: 2,
+  borderRightWidth: 5,
+  borderBottomWidth: 5,
+  borderColor: p.ink,
+  borderRadius: radius,
+});
 
 const createStyles = (p: Palette) =>
   StyleSheet.create({
@@ -451,25 +465,24 @@ const createStyles = (p: Palette) =>
     title: {
       color: p.text,
       fontSize: 32,
-      fontWeight: '800',
+      fontWeight: '900',
       letterSpacing: -0.5,
       flexShrink: 1,
+      transform: [{ rotate: '-1deg' }],
     },
     headerButtons: { flexDirection: 'row', gap: 10 },
     roundButton: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      ...sticker(p, 14),
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: p.card,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
     },
     subtitle: {
       color: p.textMuted,
       fontSize: 15,
-      marginTop: 6,
+      marginTop: 8,
       marginBottom: 24,
     },
     notice: {
@@ -477,18 +490,19 @@ const createStyles = (p: Palette) =>
       gap: 10,
       alignItems: 'flex-start',
       backgroundColor: p.card,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: p.ink,
       borderRadius: 14,
       padding: 14,
       marginBottom: 20,
     },
     noticeText: { color: p.textMuted, flex: 1, lineHeight: 19 },
-    noticeLink: { color: p.accentBright, fontWeight: '600' },
+    noticeLink: { color: p.accentBright, fontWeight: '700' },
     sectionTitle: {
       color: p.text,
       fontSize: 20,
-      fontWeight: '700',
+      fontWeight: '800',
       marginBottom: 14,
     },
     grid: {
@@ -503,43 +517,51 @@ const createStyles = (p: Palette) =>
       alignItems: 'center',
       gap: 10,
       backgroundColor: p.card,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
-      borderRadius: 16,
+      ...sticker(p),
       paddingVertical: 14,
       paddingHorizontal: 12,
     },
-    categoryCardOff: { opacity: 0.55 },
+    categoryCardOff: {
+      // Flat outline, even edges — looks pressed down next to active stickers.
+      borderWidth: 2,
+      borderRightWidth: 2,
+      borderBottomWidth: 2,
+      borderColor: p.inkSoft,
+    },
     iconTile: {
       width: 38,
       height: 38,
       borderRadius: 10,
+      borderWidth: 2,
+      borderColor: TILE_INK,
       alignItems: 'center',
       justifyContent: 'center',
     },
     categoryName: {
       color: p.text,
       fontSize: 15,
-      fontWeight: '600',
+      fontWeight: '700',
       flex: 1,
     },
+    categoryNameActive: { color: TILE_INK },
     check: {
       width: 24,
       height: 24,
-      borderRadius: 12,
+      borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    checkOn: { backgroundColor: p.accent },
-    checkOff: { borderWidth: 1.5, borderColor: p.trackLine },
+    checkOn: { backgroundColor: TILE_INK },
+    checkOff: { borderWidth: 2, borderColor: p.inkSoft },
     comingSoon: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
       backgroundColor: p.card,
       borderRadius: 16,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: p.inkSoft,
       padding: 14,
       marginTop: 12,
       marginBottom: 24,
@@ -550,29 +572,27 @@ const createStyles = (p: Palette) =>
       borderRadius: 10,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderStyle: 'dashed',
       borderColor: p.accent,
     },
     comingSoonText: { color: p.textFaint, fontSize: 15 },
     card: {
       backgroundColor: p.card,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
-      borderRadius: 20,
+      ...sticker(p, 18),
       padding: 18,
-      marginBottom: 16,
+      marginBottom: 18,
     },
     cardHeaderRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    cardTitle: { color: p.text, fontSize: 17, fontWeight: '700' },
-    cardValue: { color: p.accentBright, fontSize: 15, fontWeight: '600' },
+    cardTitle: { color: p.text, fontSize: 17, fontWeight: '800' },
+    cardValue: { color: p.accentBright, fontSize: 15, fontWeight: '700' },
     cardHint: { color: p.textMuted, fontSize: 14, marginTop: 4 },
     sliderTrack: {
-      height: 32,
+      height: 34,
       justifyContent: 'center',
       marginTop: 18,
     },
@@ -580,14 +600,14 @@ const createStyles = (p: Palette) =>
       position: 'absolute',
       left: 10,
       right: 10,
-      height: 3,
+      height: 4,
       borderRadius: 2,
       backgroundColor: p.trackLine,
     },
     trackFill: {
       position: 'absolute',
       left: 10,
-      height: 3,
+      height: 4,
       borderRadius: 2,
       backgroundColor: p.accent,
     },
@@ -597,34 +617,32 @@ const createStyles = (p: Palette) =>
       alignItems: 'center',
     },
     tickHit: {
-      width: 24,
+      width: 26,
       alignItems: 'center',
       justifyContent: 'center',
     },
     tick: {
-      width: 3,
-      height: 12,
+      width: 4,
+      height: 14,
       borderRadius: 2,
       backgroundColor: p.trackLine,
     },
     thumb: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: 26,
+      height: 26,
+      borderRadius: 8,
       backgroundColor: p.accent,
+      borderWidth: 2,
+      borderColor: p.ink,
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: p.accent,
-      shadowOpacity: 0.6,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 0 },
-      elevation: 6,
+      transform: [{ rotate: '4deg' }],
     },
     thumbInner: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: '#FFF',
+      width: 8,
+      height: 8,
+      borderRadius: 2,
+      backgroundColor: TILE_INK,
     },
     labelsRow: {
       flexDirection: 'row',
@@ -635,18 +653,21 @@ const createStyles = (p: Palette) =>
     tickLabel: {
       color: p.textFaint,
       fontSize: 13,
+      fontWeight: '600',
       width: 32,
       textAlign: 'center',
     },
-    tickLabelActive: { color: p.accentBright, fontWeight: '700' },
+    tickLabelActive: { color: p.accentBright, fontWeight: '800' },
     scheduleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     clockTile: {
       width: 52,
       height: 52,
-      borderRadius: 26,
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: TILE_INK,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: 'rgba(139, 92, 246, 0.14)',
+      backgroundColor: '#F9C15C',
     },
     scheduleTextWrap: { flex: 1, gap: 3 },
     scheduleDetail: { color: p.textMuted, fontSize: 14 },
@@ -654,14 +675,18 @@ const createStyles = (p: Palette) =>
     pill: {
       paddingHorizontal: 14,
       paddingVertical: 7,
-      borderRadius: 16,
+      borderRadius: 10,
     },
-    pillOn: { backgroundColor: p.accent },
-    pillOff: { borderWidth: 1.5, borderColor: p.trackLine },
-    pillText: { fontSize: 13, fontWeight: '700' },
+    pillOn: {
+      backgroundColor: p.accent,
+      borderWidth: 2,
+      borderColor: p.ink,
+    },
+    pillOff: { borderWidth: 2, borderColor: p.inkSoft },
+    pillText: { fontSize: 13, fontWeight: '800' },
     segmentRow: {
       flexDirection: 'row',
-      gap: 8,
+      gap: 10,
       marginTop: 16,
     },
     segmentBtn: {
@@ -672,35 +697,40 @@ const createStyles = (p: Palette) =>
       gap: 6,
       paddingVertical: 11,
       borderRadius: 12,
-      borderWidth: 1.5,
-      borderColor: p.trackLine,
+      borderWidth: 2,
+      borderColor: p.inkSoft,
     },
-    segmentBtnActive: { backgroundColor: p.accent, borderColor: p.accent },
-    segmentText: { fontSize: 14, fontWeight: '600' },
+    segmentBtnActive: {
+      backgroundColor: '#64D9EE',
+      borderColor: p.ink,
+      borderRightWidth: 4,
+      borderBottomWidth: 4,
+    },
+    segmentText: { fontSize: 14, fontWeight: '700' },
     actionRow: {
       flexDirection: 'row',
-      gap: 8,
+      gap: 10,
       marginTop: 14,
     },
     primaryBtn: {
       flex: 1,
       backgroundColor: p.accent,
-      borderRadius: 12,
+      ...sticker(p, 12),
       paddingVertical: 13,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    primaryBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+    primaryBtnText: { color: TILE_INK, fontSize: 15, fontWeight: '800' },
     ghostBtn: {
       flex: 1,
       borderRadius: 12,
       paddingVertical: 13,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1.5,
-      borderColor: p.trackLine,
+      borderWidth: 2,
+      borderColor: p.ink,
     },
-    ghostBtnText: { color: p.text, fontSize: 15, fontWeight: '600' },
+    ghostBtnText: { color: p.text, fontSize: 15, fontWeight: '700' },
     btnDisabled: { opacity: 0.5 },
     wallpaperNote: {
       color: p.textFaint,
@@ -712,12 +742,11 @@ const createStyles = (p: Palette) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 14,
-      backgroundColor: p.card,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
+      backgroundColor: '#64D9EE',
+      ...sticker(p, 18),
       paddingVertical: 18,
       paddingHorizontal: 16,
+      transform: [{ rotate: '-0.6deg' }],
     },
-    infoText: { color: p.textMuted, fontSize: 15, lineHeight: 21, flex: 1 },
+    infoText: { color: TILE_INK, fontSize: 15, lineHeight: 21, flex: 1, fontWeight: '600' },
   });

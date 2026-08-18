@@ -13,47 +13,69 @@ export interface Palette {
   trackLine: string;
   tabBar: string;
   particle: string;
+  /** Full-strength outline color for the sticker borders / hard shadows. */
+  ink: string;
+  /** Softer ink for inactive outlines and dividers. */
+  inkSoft: string;
 }
 
+/**
+ * Fixed dark ink used for icons sitting on the bright category tiles — the
+ * tiles stay saturated in both themes, so their icon color never flips.
+ */
+export const TILE_INK = '#17303B';
+
+// Palette drawn from the app icon: cyan → azure → amber → orange.
 export const DARK: Palette = {
-  bgTop: '#0A0D1F',
-  bgMid: '#10142B',
-  bgBottom: '#241640',
-  card: 'rgba(30, 34, 66, 0.72)',
-  cardSolid: '#1A1F3D',
-  cardBorder: 'rgba(124, 92, 255, 0.16)',
-  accent: '#8B5CF6',
-  accentBright: '#A78BFA',
-  text: '#F4F4FB',
-  textMuted: '#9AA0C3',
-  textFaint: '#6B7199',
-  trackLine: '#3A3F63',
-  tabBar: 'rgba(26, 31, 61, 0.96)',
-  particle: '#C4B5FD',
+  bgTop: '#0B2530',
+  bgMid: '#122029',
+  bgBottom: '#33200D',
+  card: '#1B2F38',
+  cardSolid: '#1B2F38',
+  cardBorder: '#F2E9D8',
+  accent: '#F6821F',
+  accentBright: '#FFB25A',
+  text: '#F7EFDF',
+  textMuted: '#A8BCC4',
+  textFaint: '#7B929B',
+  trackLine: 'rgba(242, 233, 216, 0.35)',
+  tabBar: '#1B2F38',
+  particle: '#FFB25A',
+  ink: '#F2E9D8',
+  inkSoft: 'rgba(242, 233, 216, 0.4)',
 };
 
 export const LIGHT: Palette = {
-  bgTop: '#F7F5FF',
-  bgMid: '#EFEAFC',
-  bgBottom: '#E3D9F8',
-  card: 'rgba(255, 255, 255, 0.78)',
-  cardSolid: '#FFFFFF',
-  cardBorder: 'rgba(124, 92, 255, 0.22)',
-  accent: '#7C3AED',
-  accentBright: '#6D28D9',
-  text: '#1D1B33',
-  textMuted: '#565A7A',
-  textFaint: '#8A8FAD',
-  trackLine: '#CFCFE6',
-  tabBar: 'rgba(255, 255, 255, 0.96)',
-  particle: '#8B5CF6',
+  bgTop: '#DFF5F9',
+  bgMid: '#FBF3E4',
+  bgBottom: '#FCE7CB',
+  card: '#FFFDF7',
+  cardSolid: '#FFFDF7',
+  cardBorder: '#17303B',
+  accent: '#F6821F',
+  accentBright: '#D96A0B',
+  text: '#17303B',
+  textMuted: '#4E6470',
+  textFaint: '#7C8E97',
+  trackLine: 'rgba(23, 48, 59, 0.3)',
+  tabBar: '#FFFDF7',
+  particle: '#F6821F',
+  ink: '#17303B',
+  inkSoft: 'rgba(23, 48, 59, 0.35)',
 };
 
+// Solid sticker fills from the icon's cyan-to-orange family; icons are always
+// TILE_INK on top of them.
 export const CATEGORY_META: Record<string, { icon: string; color: string; tile: string }> = {
-  Science: { icon: 'flask', color: '#4DA3FF', tile: 'rgba(77, 163, 255, 0.16)' },
-  History: { icon: 'business', color: '#F5A524', tile: 'rgba(245, 165, 36, 0.16)' },
-  Space: { icon: 'planet', color: '#A78BFA', tile: 'rgba(167, 139, 250, 0.16)' },
-  Animals: { icon: 'paw', color: '#4ADE80', tile: 'rgba(74, 222, 128, 0.16)' },
-  Geography: { icon: 'earth', color: '#2DD4BF', tile: 'rgba(45, 212, 191, 0.16)' },
-  'Human Body': { icon: 'heart', color: '#FB7185', tile: 'rgba(251, 113, 133, 0.16)' },
+  Science: { icon: 'flask', color: TILE_INK, tile: '#64D9EE' },
+  History: { icon: 'business', color: TILE_INK, tile: '#F9C15C' },
+  Space: { icon: 'planet', color: TILE_INK, tile: '#7FB9F7' },
+  Animals: { icon: 'paw', color: TILE_INK, tile: '#F9A05C' },
+  Geography: { icon: 'earth', color: TILE_INK, tile: '#49C6AD' },
+  'Human Body': { icon: 'heart', color: TILE_INK, tile: '#F98873' },
 };
+
+/** Alternating sticker tilt for playful, hand-placed tiles. */
+export function tilt(index: number): { transform: { rotate: string }[] } {
+  return { transform: [{ rotate: index % 2 === 0 ? '-1.5deg' : '1.5deg' }] };
+}
