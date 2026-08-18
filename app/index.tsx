@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Linking,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -54,6 +56,7 @@ function formatNext(date: Date): string {
 
 export default function Home() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { mode, palette, toggleTheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -66,6 +69,8 @@ export default function Home() {
   // when the theme toggles.
   const paletteRef = useRef(palette);
   paletteRef.current = palette;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
   const refreshScheduleInfo = useCallback(async () => {
     setScheduleInfo(await getScheduleInfo());
@@ -83,6 +88,64 @@ export default function Home() {
       await syncWallpaper(s, paletteRef.current);
     })();
   }, [refreshScheduleInfo]);
+
+  // --- Draggable interval slider ---
+  // The track owns the whole gesture: taps and drags both land here, the
+  // thumb follows the finger via dragIndex, and the setting commits on release.
+  const trackRef = useRef<View>(null);
+  const trackLeftRef = useRef(0);
+  const trackWidthRef = useRef(0);
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  function indexFromX(x: number): number {
+    const usable = trackWidthRef.current - 20; // track has a 10px inset per side
+    if (usable <= 0) return 0;
+    const t = Math.min(Math.max(x - 10, 0), usable) / usable;
+    return Math.round(t * (INTERVALS.length - 1));
+  }
+
+  function setDrag(i: number) {
+    if (dragIndexRef.current !== i) {
+      dragIndexRef.current = i;
+      setDragIndex(i);
+    }
+  }
+
+  function commitDrag() {
+    const i = dragIndexRef.current;
+    dragIndexRef.current = null;
+    setDragIndex(null);
+    if (i != null && INTERVALS[i].minutes !== settingsRef.current.intervalMinutes) {
+      update({ ...settingsRef.current, intervalMinutes: INTERVALS[i].minutes });
+    }
+  }
+
+  const sliderResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        // Don't let the surrounding ScrollView steal the gesture mid-drag.
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: (e) => {
+          const { pageX } = e.nativeEvent;
+          trackRef.current?.measureInWindow((x, _y, width) => {
+            trackLeftRef.current = x;
+            if (width > 0) trackWidthRef.current = width;
+            setDrag(indexFromX(pageX - x));
+          });
+        },
+        onPanResponderMove: (e) => {
+          setDrag(indexFromX(e.nativeEvent.pageX - trackLeftRef.current));
+        },
+        onPanResponderRelease: () => commitDrag(),
+        onPanResponderTerminate: () => commitDrag(),
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   async function update(next: Settings) {
     setSettings(next);
@@ -136,6 +199,8 @@ export default function Home() {
     0,
     INTERVALS.findIndex((i) => i.minutes === settings.intervalMinutes)
   );
+  // While dragging, the UI follows the finger; otherwise the saved setting.
+  const shownIndex = dragIndex ?? intervalIndex;
 
   const wallpaperOk = WALLPAPER_AVAILABLE && wallpaperSupported();
 
@@ -148,7 +213,7 @@ export default function Home() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 110 },
+          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 32 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -156,6 +221,9 @@ export default function Home() {
         <View style={styles.headerRow}>
           <Text style={styles.title}>Lock Screen Facts</Text>
           <View style={styles.headerButtons}>
+            <Pressable style={styles.roundButton} onPress={() => router.push('/browse')}>
+              <Ionicons name="book-outline" size={20} color={palette.text} />
+            </Pressable>
             <Pressable style={styles.roundButton} onPress={toggleTheme}>
               <Ionicons
                 name={mode === 'dark' ? 'sunny' : 'moon'}
@@ -234,34 +302,36 @@ export default function Home() {
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <Text style={styles.cardTitle}>Refresh Interval</Text>
-            <Text style={styles.cardValue}>{INTERVALS[intervalIndex].sentence}</Text>
+            <Text style={styles.cardValue}>{INTERVALS[shownIndex].sentence}</Text>
           </View>
           <Text style={styles.cardHint}>How often you'll see a new fact.</Text>
 
-          <View style={styles.sliderTrack}>
+          <View
+            ref={trackRef}
+            style={styles.sliderTrack}
+            onLayout={(e) => {
+              trackWidthRef.current = e.nativeEvent.layout.width;
+            }}
+            {...sliderResponder.panHandlers}
+          >
             <View style={styles.trackLine} />
             <View
               style={[
                 styles.trackFill,
-                { width: `${(intervalIndex / (INTERVALS.length - 1)) * 100}%` },
+                { width: `${(shownIndex / (INTERVALS.length - 1)) * 100}%` },
               ]}
             />
-            <View style={styles.ticksRow}>
+            <View style={styles.ticksRow} pointerEvents="none">
               {INTERVALS.map((interval, i) => (
-                <Pressable
-                  key={interval.minutes}
-                  onPress={() => update({ ...settings, intervalMinutes: interval.minutes })}
-                  style={styles.tickHit}
-                  hitSlop={10}
-                >
-                  {i === intervalIndex ? (
+                <View key={interval.minutes} style={styles.tickHit}>
+                  {i === shownIndex ? (
                     <View style={styles.thumb}>
                       <View style={styles.thumbInner} />
                     </View>
                   ) : (
                     <View style={styles.tick} />
                   )}
-                </Pressable>
+                </View>
               ))}
             </View>
           </View>
@@ -269,7 +339,7 @@ export default function Home() {
             {INTERVALS.map((interval, i) => (
               <Text
                 key={interval.minutes}
-                style={[styles.tickLabel, i === intervalIndex && styles.tickLabelActive]}
+                style={[styles.tickLabel, i === shownIndex && styles.tickLabelActive]}
               >
                 {interval.label}
               </Text>
@@ -586,9 +656,9 @@ const createStyles = (p: Palette) =>
     cardValue: { color: p.accentBright, fontSize: 15, fontWeight: '700' },
     cardHint: { color: p.textMuted, fontSize: 14, marginTop: 4 },
     sliderTrack: {
-      height: 34,
+      height: 44,
       justifyContent: 'center',
-      marginTop: 18,
+      marginTop: 14,
     },
     trackLine: {
       position: 'absolute',

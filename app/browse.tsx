@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { SectionList, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORIES, FACTS } from '../lib/facts';
 import { CATEGORY_META, Palette, tilt } from '../lib/theme';
@@ -14,6 +15,7 @@ const SECTIONS = CATEGORIES.map((category) => ({
 
 export default function Browse() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
@@ -28,13 +30,18 @@ export default function Browse() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 110 },
+          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 32 },
         ]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <>
-            <Text style={styles.title}>Browse Facts</Text>
+            <View style={styles.headerRow}>
+              <Pressable style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={20} color={palette.text} />
+              </Pressable>
+              <Text style={styles.title}>Browse Facts</Text>
+            </View>
             <Text style={styles.subtitle}>Everything that can land on your lock screen.</Text>
           </>
         }
@@ -64,11 +71,27 @@ const createStyles = (p: Palette) =>
   StyleSheet.create({
     root: { flex: 1 },
     container: { paddingHorizontal: 20 },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    backButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      borderWidth: 2.5,
+      borderColor: p.ink,
+      backgroundColor: p.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     title: {
       color: p.text,
-      fontSize: 34,
+      fontSize: 30,
       fontWeight: '900',
       letterSpacing: -0.5,
+      flexShrink: 1,
       transform: [{ rotate: '-1deg' }],
     },
     subtitle: {
