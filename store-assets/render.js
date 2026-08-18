@@ -24,6 +24,10 @@ function fileUrl(p) {
 async function render(page, url, width, height, outFile) {
   await page.setViewport({ width, height });
   await page.goto(url, { waitUntil: 'networkidle0' });
+  if (url.includes('screenshot.html')) {
+    // The template resizes the device frame once the capture loads.
+    await page.waitForFunction('window.__ready === true');
+  }
   await page.screenshot({ path: outFile });
   console.log('wrote', path.relative(ROOT, outFile));
 }
