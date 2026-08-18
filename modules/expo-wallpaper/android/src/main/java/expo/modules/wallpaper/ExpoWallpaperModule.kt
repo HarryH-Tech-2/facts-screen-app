@@ -35,10 +35,13 @@ class ExpoWallpaperModule : Module() {
         ExistingPeriodicWorkPolicy.UPDATE,
         request
       )
+      // WorkManager returns an Operation, which expo-modules can't convert to JS.
+      Unit
     }
 
     AsyncFunction("cancel") {
       WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+      Unit
     }
 
     AsyncFunction("importPhoto") { uri: String ->
