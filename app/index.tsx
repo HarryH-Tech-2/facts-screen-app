@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Linking,
   PanResponder,
@@ -14,11 +14,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CATEGORIES } from '../lib/facts';
 import {
-  getScheduleInfo,
   NOTIFICATIONS_AVAILABLE,
   requestNotificationPermission,
   rescheduleAll,
-  ScheduleInfo,
 } from '../lib/notifications';
 import {
   DEFAULT_SETTINGS,
@@ -43,17 +41,6 @@ const INTERVALS: { label: string; minutes: number; sentence: string }[] = [
   { label: '24h', minutes: 1440, sentence: 'Once a day' },
 ];
 
-function formatNext(date: Date): string {
-  const now = new Date();
-  const time = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  const sameDay = date.toDateString() === now.toDateString();
-  if (sameDay) return `Today, ${time}`;
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  if (date.toDateString() === tomorrow.toDateString()) return `Tomorrow, ${time}`;
-  return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${time}`;
-}
-
 export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -62,7 +49,6 @@ export default function Home() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(true);
-  const [scheduleInfo, setScheduleInfo] = useState<ScheduleInfo | null>(null);
   const [wallpaperBusy, setWallpaperBusy] = useState(false);
 
   // Keep the latest palette available to async flows without re-triggering them
@@ -72,10 +58,6 @@ export default function Home() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  const refreshScheduleInfo = useCallback(async () => {
-    setScheduleInfo(await getScheduleInfo());
-  }, []);
-
   useEffect(() => {
     (async () => {
       const s = await loadSettings();
@@ -83,11 +65,10 @@ export default function Home() {
       setLoaded(true);
       setPermissionGranted(await requestNotificationPermission());
       await rescheduleAll();
-      await refreshScheduleInfo();
       // Refresh the lock-screen wallpaper on open and re-arm its worker.
       await syncWallpaper(s, paletteRef.current);
     })();
-  }, [refreshScheduleInfo]);
+  }, []);
 
   // --- Draggable interval slider ---
   // The track owns the whole gesture: taps and drags both land here, the
@@ -151,7 +132,6 @@ export default function Home() {
     setSettings(next);
     await saveSettings(next);
     await rescheduleAll();
-    await refreshScheduleInfo();
     await syncWallpaper(next, paletteRef.current);
   }
 
@@ -463,44 +443,6 @@ export default function Home() {
           )}
         </View>
 
-        {/* Scheduled notifications */}
-        <Pressable
-          style={styles.card}
-          onPress={() =>
-            update({ ...settings, notificationsEnabled: !settings.notificationsEnabled })
-          }
-        >
-          <View style={styles.scheduleRow}>
-            <View style={[styles.clockTile, tilt(1)]}>
-              <Ionicons
-                name={settings.notificationsEnabled ? 'time-outline' : 'pause'}
-                size={24}
-                color={TILE_INK}
-              />
-            </View>
-            <View style={styles.scheduleTextWrap}>
-              <Text style={styles.cardTitle}>Scheduled Notifications</Text>
-              {settings.notificationsEnabled ? (
-                <>
-                  <Text style={styles.scheduleDetail}>
-                    {scheduleInfo
-                      ? `${scheduleInfo.count} notifications scheduled`
-                      : 'Available in the full build'}
-                  </Text>
-                  {scheduleInfo?.nextDate && (
-                    <Text style={styles.scheduleNext}>
-                      Next: {formatNext(scheduleInfo.nextDate)}
-                    </Text>
-                  )}
-                </>
-              ) : (
-                <Text style={styles.scheduleDetail}>Paused — tap to resume</Text>
-              )}
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={palette.textFaint} />
-          </View>
-        </Pressable>
-
         {/* Info banner */}
         <View style={styles.infoBanner}>
           <Ionicons name="sparkles" size={22} color={TILE_INK} />
@@ -735,7 +677,6 @@ const createStyles = (p: Palette) =>
     },
     scheduleTextWrap: { flex: 1, gap: 3 },
     scheduleDetail: { color: p.textMuted, fontSize: 14 },
-    scheduleNext: { color: p.textFaint, fontSize: 14 },
     pill: {
       paddingHorizontal: 14,
       paddingVertical: 7,
