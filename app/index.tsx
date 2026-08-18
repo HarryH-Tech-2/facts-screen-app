@@ -443,12 +443,9 @@ export default function Home() {
   );
 }
 
-// The sticker look: chunky ink outline with a thicker right/bottom edge that
-// reads as a hard offset shadow on every platform.
+// The sticker look: a chunky, even ink outline on every element.
 const sticker = (p: Palette, radius = 16) => ({
-  borderWidth: 2,
-  borderRightWidth: 5,
-  borderBottomWidth: 5,
+  borderWidth: 2.5,
   borderColor: p.ink,
   borderRadius: radius,
 });
@@ -522,10 +519,7 @@ const createStyles = (p: Palette) =>
       paddingHorizontal: 12,
     },
     categoryCardOff: {
-      // Flat outline, even edges — looks pressed down next to active stickers.
-      borderWidth: 2,
-      borderRightWidth: 2,
-      borderBottomWidth: 2,
+      // Softer outline — looks pressed down next to active stickers.
       borderColor: p.inkSoft,
     },
     iconTile: {
@@ -703,8 +697,6 @@ const createStyles = (p: Palette) =>
     segmentBtnActive: {
       backgroundColor: '#64D9EE',
       borderColor: p.ink,
-      borderRightWidth: 4,
-      borderBottomWidth: 4,
     },
     segmentText: { fontSize: 14, fontWeight: '700' },
     actionRow: {

@@ -96,9 +96,7 @@ const createStyles = (p: Palette) =>
     sectionTitle: { color: p.text, fontSize: 19, fontWeight: '800' },
     item: {
       backgroundColor: p.card,
-      borderWidth: 2,
-      borderRightWidth: 4,
-      borderBottomWidth: 4,
+      borderWidth: 2.5,
       borderColor: p.ink,
       borderRadius: 14,
       padding: 14,

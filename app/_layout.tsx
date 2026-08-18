@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerBackgroundTopUp } from '../lib/backgroundTask';
+import { TILE_INK } from '../lib/theme';
 import { ThemeProvider, useTheme } from '../lib/theme-context';
 
 function AppTabs() {
@@ -18,24 +19,27 @@ function AppTabs() {
           headerShown: false,
           sceneStyle: { backgroundColor: palette.bgTop },
           tabBarShowLabel: true,
-          tabBarActiveTintColor: palette.accentBright,
+          tabBarActiveTintColor: TILE_INK,
           tabBarInactiveTintColor: palette.textFaint,
-          tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
+          tabBarLabelStyle: { fontSize: 13, fontWeight: '700' },
+          tabBarActiveBackgroundColor: '#F9C15C',
+          tabBarItemStyle: {
+            marginHorizontal: 8,
+            marginVertical: 6,
+            borderRadius: 12,
+            overflow: 'hidden',
+          },
           tabBarStyle: {
             position: 'absolute',
             left: 16,
             right: 16,
             bottom: insets.bottom + 12, // stay clear of the device nav bar / gesture area
-            height: 64,
-            paddingTop: 8,
-            paddingBottom: 10,
+            height: 66,
             borderRadius: 18,
             backgroundColor: palette.tabBar,
-            borderWidth: 2,
-            borderRightWidth: 5,
-            borderBottomWidth: 5,
+            borderWidth: 2.5,
             borderColor: palette.ink,
-            borderTopWidth: 2,
+            borderTopWidth: 2.5,
             borderTopColor: palette.ink,
             elevation: 0,
           },
