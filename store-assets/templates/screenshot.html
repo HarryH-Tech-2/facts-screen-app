@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #29C5E6 0%, #7ED4EF 30%, #FBE3B8 65%, #F6821F 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .headline {
+    margin-top: 90px;
+    max-width: 900px;
+    background: #FFFDF7;
+    border: 6px solid #17303B;
+    border-radius: 28px;
+    box-shadow: 10px 10px 0 rgba(23, 48, 59, 0.55);
+    padding: 30px 48px;
+    transform: rotate(-1deg);
+    font-size: 58px;
+    font-weight: 900;
+    color: #17303B;
+    text-align: center;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .device {
+    margin-top: 80px;
+    width: 720px;
+    height: 1520px;
+    background: #17303B;
+    border-radius: 64px;
+    padding: 18px;
+    box-shadow: 14px 14px 0 rgba(23, 48, 59, 0.45);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 48px;
+    overflow: hidden;
+    background: #FFFDF7;
+  }
+  .screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    display: block;
+  }
+</style>
+</head>
+<body>
+  <div class="headline" id="headline"></div>
+  <div class="device"><div class="screen"><img id="shot" src=""></div></div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.getElementById('headline').textContent = params.get('title') || '';
+    document.getElementById('shot').src = params.get('img') || '';
+  </script>
+</body>
+</html>
