@@ -10,10 +10,10 @@ const ThemeContext = createContext<{
   mode: ThemeMode;
   palette: Palette;
   toggleTheme: () => void;
-}>({ mode: 'dark', palette: DARK, toggleTheme: () => {} });
+}>({ mode: 'light', palette: LIGHT, toggleTheme: () => {} });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  const [mode, setMode] = useState<ThemeMode>('light');
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
