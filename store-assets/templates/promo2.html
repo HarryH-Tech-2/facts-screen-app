@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #29C5E6 0%, #7ED4EF 30%, #FBE3B8 65%, #F6821F 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .headline {
+    margin-top: 100px;
+    background: #FFFDF7;
+    border: 6px solid #17303B;
+    border-radius: 28px;
+    box-shadow: 10px 10px 0 rgba(23, 48, 59, 0.55);
+    padding: 30px 56px;
+    transform: rotate(1deg);
+    font-size: 64px;
+    font-weight: 900;
+    color: #17303B;
+    letter-spacing: -1px;
+    text-align: center;
+  }
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 52px;
+    align-content: center;
+    width: 880px;
+  }
+  .cat {
+    border: 6px solid #17303B;
+    border-radius: 32px;
+    box-shadow: 10px 10px 0 rgba(23, 48, 59, 0.5);
+    padding: 44px 20px 38px;
+    text-align: center;
+  }
+  .cat:nth-child(odd) { transform: rotate(-1.8deg); }
+  .cat:nth-child(even) { transform: rotate(1.8deg); }
+  .cat .emoji { font-size: 120px; line-height: 1; }
+  .cat .name {
+    margin-top: 22px;
+    font-size: 42px;
+    font-weight: 900;
+    color: #17303B;
+  }
+  .science { background: #64D9EE; }
+  .history { background: #F9C15C; }
+  .space { background: #7FB9F7; }
+  .animals { background: #F9A05C; }
+  .geography { background: #49C6AD; }
+  .body-cat { background: #F98873; }
+  .perks {
+    margin-bottom: 110px;
+    display: flex;
+    gap: 34px;
+  }
+  .perk {
+    background: #FFFDF7;
+    border: 5px solid #17303B;
+    border-radius: 18px;
+    box-shadow: 8px 8px 0 rgba(23, 48, 59, 0.5);
+    padding: 20px 30px;
+    font-size: 34px;
+    font-weight: 800;
+    color: #17303B;
+  }
+  .perk:nth-child(1) { transform: rotate(-1.5deg); }
+  .perk:nth-child(2) { transform: rotate(1.2deg); }
+  .perk:nth-child(3) { transform: rotate(-1deg); }
+</style>
+</head>
+<body>
+  <div class="headline">Six worlds of wonder</div>
+  <div class="grid">
+    <div class="cat science"><div class="emoji">🧪</div><div class="name">Science</div></div>
+    <div class="cat history"><div class="emoji">🏛️</div><div class="name">History</div></div>
+    <div class="cat space"><div class="emoji">🪐</div><div class="name">Space</div></div>
+    <div class="cat animals"><div class="emoji">🐾</div><div class="name">Animals</div></div>
+    <div class="cat geography"><div class="emoji">🌍</div><div class="name">Geography</div></div>
+    <div class="cat body-cat"><div class="emoji">❤️</div><div class="name">Human Body</div></div>
+  </div>
+  <div class="perks">
+    <div class="perk">📴 Works offline</div>
+    <div class="perk">🚫 No ads</div>
+    <div class="perk">🔒 100% private</div>
+  </div>
+</body>
+</html>

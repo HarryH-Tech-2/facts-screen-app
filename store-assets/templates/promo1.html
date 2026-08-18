@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #29C5E6 0%, #7ED4EF 30%, #FBE3B8 65%, #F6821F 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .headline {
+    margin-top: 100px;
+    background: #FFFDF7;
+    border: 6px solid #17303B;
+    border-radius: 28px;
+    box-shadow: 10px 10px 0 rgba(23, 48, 59, 0.55);
+    padding: 30px 64px;
+    transform: rotate(-1.5deg);
+    font-size: 72px;
+    font-weight: 900;
+    color: #17303B;
+    letter-spacing: -1px;
+  }
+  .cards {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 70px;
+    width: 880px;
+  }
+  .fact {
+    background: #FFFDF7;
+    border: 6px solid #17303B;
+    border-radius: 32px;
+    box-shadow: 12px 12px 0 rgba(23, 48, 59, 0.5);
+    padding: 40px 44px;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+  }
+  .fact:nth-child(1) { transform: rotate(-2deg); }
+  .fact:nth-child(2) { transform: rotate(1.6deg); }
+  .fact:nth-child(3) { transform: rotate(-1.4deg); }
+  .emoji {
+    font-size: 110px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .body { flex: 1; }
+  .text {
+    font-size: 42px;
+    font-weight: 700;
+    color: #17303B;
+    line-height: 1.25;
+  }
+  .chip {
+    display: inline-block;
+    margin-top: 18px;
+    font-size: 26px;
+    font-weight: 800;
+    color: #17303B;
+    border: 4px solid #17303B;
+    border-radius: 12px;
+    padding: 6px 18px;
+  }
+  .chip.animals { background: #F9A05C; }
+  .chip.space { background: #7FB9F7; }
+  .chip.science { background: #64D9EE; }
+  .footer {
+    margin-bottom: 110px;
+    background: #17303B;
+    color: #FFFDF7;
+    border-radius: 22px;
+    box-shadow: 10px 10px 0 rgba(23, 48, 59, 0.35);
+    padding: 26px 48px;
+    font-size: 38px;
+    font-weight: 800;
+    transform: rotate(1deg);
+  }
+</style>
+</head>
+<body>
+  <div class="headline">Did you know?</div>
+  <div class="cards">
+    <div class="fact">
+      <div class="emoji">🐙</div>
+      <div class="body">
+        <div class="text">Octopuses have three hearts — and blue blood.</div>
+        <div class="chip animals">ANIMALS</div>
+      </div>
+    </div>
+    <div class="fact">
+      <div class="emoji">🪐</div>
+      <div class="body">
+        <div class="text">A day on Venus is longer than its entire year.</div>
+        <div class="chip space">SPACE</div>
+      </div>
+    </div>
+    <div class="fact">
+      <div class="emoji">🍯</div>
+      <div class="body">
+        <div class="text">A teaspoon of honey is the life work of about 12 bees.</div>
+        <div class="chip science">SCIENCE</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Facts like these all day, one glance away</div>
+</body>
+</html>

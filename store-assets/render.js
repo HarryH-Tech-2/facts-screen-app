@@ -55,6 +55,16 @@ async function render(page, url, width, height, outFile) {
     path.join(OUT, 'feature-1024x500.png')
   );
 
+  for (const promo of ['promo1', 'promo2']) {
+    await render(
+      page,
+      fileUrl(path.join(ROOT, 'templates', `${promo}.html`)),
+      1080,
+      1920,
+      path.join(OUT, `${promo}.png`)
+    );
+  }
+
   const captions = JSON.parse(fs.readFileSync(path.join(ROOT, 'captions.json'), 'utf8'));
   for (const [i, entry] of captions.entries()) {
     const rawFile = path.join(RAW, entry.file);
