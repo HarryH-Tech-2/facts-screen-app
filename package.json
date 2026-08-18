@@ -36,7 +36,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "store-assets": "node store-assets/render.js"
+    "store-assets": "node store-assets/render.js",
+    "store-video": "node store-assets/video.js"
   },
   "jest": {
     "preset": "jest-expo",

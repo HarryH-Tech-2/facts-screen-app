@@ -9,7 +9,10 @@ Generates all Play Store visual assets from templates. Rerun after any UI change
    Capture via a normal on-device screenshot, or with USB debugging:
    `adb exec-out screencap -p > store-assets/raw/home-light.png`
 2. Run `npm run store-assets`
-3. Upload everything in `out/` to Play Console.
+3. Run `npm run store-video` (needs ffmpeg on PATH) to assemble
+   `out/promo-video.mp4` — a ~22s 1080p slideshow of the slides with zoom
+   and crossfades. Upload it to YouTube and link it in Play Console.
+4. Upload everything in `out/` to Play Console.
 
 The store icon and feature graphic render with no input; screenshots render
 only for raw captures that exist. Edit `captions.json` to change headlines or

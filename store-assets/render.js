@@ -55,6 +55,16 @@ async function render(page, url, width, height, outFile) {
     path.join(OUT, 'feature-1024x500.png')
   );
 
+  for (const card of ['video-title', 'video-end']) {
+    await render(
+      page,
+      fileUrl(path.join(ROOT, 'templates', `${card}.html`)),
+      1920,
+      1080,
+      path.join(OUT, `${card}.png`)
+    );
+  }
+
   for (const promo of ['promo1', 'promo2']) {
     await render(
       page,
